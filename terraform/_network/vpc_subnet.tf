@@ -2,6 +2,7 @@ locals {
   subnets         = cidrsubnets(var.cidr_block, 2, 2, 2, 2)
   subnets_private = slice(local.subnets, 0, 2)
   subnets_public  = slice(local.subnets, 2, 4)
+  zone            = ["a", "b", "c"]
 }
 
 resource "aws_vpc" "main" {
@@ -14,9 +15,10 @@ resource "aws_vpc" "main" {
 }
 
 resource "aws_subnet" "private" {
-  for_each   = { for key, value in local.subnets_private : key => value }
-  vpc_id     = aws_vpc.main.id
-  cidr_block = each.value
+  for_each          = { for key, value in local.subnets_private : key => value }
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = each.value
+  availability_zone = "${var.region}${local.zone[each.key]}"
 
   tags = {
     Name = "${var.resource_name}-private-subnet-${each.key + 1}"
@@ -30,9 +32,10 @@ resource "aws_route_table_association" "rt_association_private" {
 }
 
 resource "aws_subnet" "public" {
-  for_each   = { for key, value in local.subnets_public : key => value }
-  vpc_id     = aws_vpc.main.id
-  cidr_block = each.value
+  for_each          = { for key, value in local.subnets_public : key => value }
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = each.value
+  availability_zone = "${var.region}${local.zone[each.key]}"
 
   tags = {
     Name = "${var.resource_name}-public-subnet-${each.key + 1}"

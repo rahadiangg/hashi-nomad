@@ -11,3 +11,7 @@ variable "cidr_block" {
 variable "resource_name" {
   type = string
 }
+
+variable "region" {
+  type = string
+}
